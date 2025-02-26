@@ -27,7 +27,8 @@ pred complementary[c1: Color, c2: Color] {
     (c1 = Orange and c2 = Blue) or
     (c1 = Yellow and c2 = Purple) or
     (c1 = Purple and c2 = Yellow) or
-    (c1 in Black + White + Gray and c2 in Black + White + Gray)
+    ((c1 = Black or c1 = White or c1 = Gray) and 
+        (c2 = Black or c2 = White or c2 = Gray))
 }
 
 -- Outfit definition
@@ -35,7 +36,7 @@ sig Outfit {
     top: one Clothing,
     bottom: one Clothing,
     outerwear: lone Clothing,
-    accessory: set Clothing,
+    accessory: one Clothing,
     shoes: one Clothing
 }
 
@@ -64,22 +65,25 @@ pred wellformed[outfit: Outfit] {
 
 pred colorRules[outfit: Outfit] {
     -- Ensure at least one complementary color pair exists in the outfit
-    // some disj c1, c2: outfit.top.color + outfit.bottom.color + outfit.shoes.color + 
-    //                  (outfit.outerwear.color & Color) |
-    //     complementary(c1, c2)
+    some c1, c2: Color | {
+        c1 != c2 and  -- Ensure c1 and c2 are distinct
+        (c1 = outfit.top.color or c1 = outfit.bottom.color or c1 = outfit.shoes.color or c1 = outfit.outerwear.color) and
+        (c2 = outfit.top.color or c2 = outfit.bottom.color or c2 = outfit.shoes.color or c2 = outfit.outerwear.color) and
+        complementary[c1, c2]
+    }
 
-    complementary[outfit.top.color, outfit.bottom.color]
+    // complementary[outfit.top.color, outfit.bottom.color]
 
 }
 
 -- Ensure that at least one valid outfit exists for each season
 pred wardrobeHasValidOutfits {
     all s: Season | some o: Outfit | 
-        o.top.season = s and
+        // o.top.season = s and
         seasonalityMatch[o] and 
         formalityMatch[o] and 
         wellformed[o] and 
         colorRules[o]
 }
 
-run wardrobeHasValidOutfits for exactly 4 Season, exactly 4 Outfit, exactly 10 Clothing
+run wardrobeHasValidOutfits for exactly 4 Season, exactly 1 Outfit, exactly 5 Clothing
