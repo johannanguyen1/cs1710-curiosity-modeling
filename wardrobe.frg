@@ -10,7 +10,11 @@ sig Clothing {
 abstract sig Category {}
 one sig Top, Bottom, Outerwear, Accessory, Shoe extends Category {}
 
-abstract sig Color {}
+abstract sig Color {
+    red: one Int,
+    green: one Int,
+    blue: one Int
+}
 one sig Red, Green, Blue, Orange, Yellow, Purple, Black, White, Gray extends Color {}
 
 abstract sig Season {}
@@ -19,7 +23,52 @@ one sig Summer, Winter, Spring, Fall extends Season {}
 abstract sig Formality {}
 one sig Casual, Business, Formal extends Formality {}
 
--- Define complementary color pairs
+-- Define RGB values for each color
+pred rgbValues {
+    all c: Color | {
+        (c = Red) implies (c.red = 255 and c.green = 0 and c.blue = 0)
+        (c = Green) implies (c.red = 0 and c.green = 255 and c.blue = 0)
+        (c = Blue) implies (c.red = 0 and c.green = 0 and c.blue = 255)
+        (c = Orange) implies (c.red = 255 and c.green = 165 and c.blue = 0)
+        (c = Yellow) implies (c.red = 255 and c.green = 255 and c.blue = 0)
+        (c = Purple) implies (c.red = 128 and c.green = 0 and c.blue = 128)
+        (c = Black) implies (c.red = 0 and c.green = 0 and c.blue = 0)
+        (c = White) implies (c.red = 255 and c.green = 255 and c.blue = 255)
+        (c = Gray) implies (c.red = 128 and c.green = 128 and c.blue = 128)
+    }
+}
+
+pred wellformedComplementary[c1: Color, c2: Color] {
+    -- Ensure RGB values are within valid range (0 to 255)
+    c1.red >= 0 and c1.red <= 255
+    c1.green >= 0 and c1.green <= 255
+    c1.blue >= 0 and c1.blue <= 255
+
+    c2.red >= 0 and c2.red <= 255
+    c2.green >= 0 and c2.green <= 255
+    c2.blue >= 0 and c2.blue <= 255
+
+    -- Ensure the RGB components add up to 255
+    add[c1.red, c2.red] = 255
+    add[c1.green, c2.green] = 255
+    add[c1.blue, c2.blue] = 255
+}
+
+pred complementary[c1: Color, c2: Color] {
+    rgbValues
+    c1.red = subtract[255, c2.red]
+    c1.green = subtract[255, c2.green]
+    c1.blue = subtract[255, c2.blue]
+    wellformedComplementary[c1, c2]
+}
+
+run {
+    rgbValues
+    some c1, c2: Color | complementary[c1, c2]
+} for exactly 9 Color, 10 Int
+
+
+/*-- Define complementary color pairs
 pred complementary[c1: Color, c2: Color] {
     (c1 = Red and c2 = Green) or
     (c1 = Green and c2 = Red) or
@@ -30,7 +79,7 @@ pred complementary[c1: Color, c2: Color] {
     ((c1 = Black or c1 = White or c1 = Gray) and 
         (c2 = Black or c2 = White or c2 = Gray))
 }
-
+*/
 -- Outfit definition
 sig Outfit {
     top: one Clothing,
