@@ -1,4 +1,5 @@
 #lang forge/froglet
+// option bitwidth 9
 
 sig Clothing {
     category: one Category,
@@ -15,7 +16,8 @@ abstract sig Color {
     green: one Int,
     blue: one Int
 }
-one sig Red, Green, Blue, Orange, Yellow, Purple, Black, White, Gray extends Color {}
+
+one sig Red, Green, Blue, Orange, Yellow, Magenta, Cyan, Purple, SkyBlue, Rose, OceanGreen, LeafGreen, Black, White, Gray extends Color {}
 
 abstract sig Season {}
 one sig Summer, Winter, Spring, Fall extends Season {}
@@ -23,7 +25,21 @@ one sig Summer, Winter, Spring, Fall extends Season {}
 abstract sig Formality {}
 one sig Casual, Business, Formal extends Formality {}
 
--- Define RGB values for each color
+// -- Define RGB values for each color
+// pred rgbValues {
+//     all c: Color | {
+//         (c = Red) implies (c.red = 255 and c.green = 0 and c.blue = 0)
+//         (c = Green) implies (c.red = 0 and c.green = 255 and c.blue = 0)
+//         (c = Blue) implies (c.red = 0 and c.green = 0 and c.blue = 255)
+//         (c = Orange) implies (c.red = 255 and c.green = 165 and c.blue = 0)
+//         (c = Yellow) implies (c.red = 255 and c.green = 255 and c.blue = 0)
+//         (c = Purple) implies (c.red = 128 and c.green = 0 and c.blue = 128)
+//         (c = Black) implies (c.red = 0 and c.green = 0 and c.blue = 0)
+//         (c = White) implies (c.red = 255 and c.green = 255 and c.blue = 255)
+//         (c = Gray) implies (c.red = 128 and c.green = 128 and c.blue = 128)
+//     }
+// }
+
 pred rgbValues {
     all c: Color | {
         (c = Red) implies (c.red = 255 and c.green = 0 and c.blue = 0)
@@ -31,12 +47,19 @@ pred rgbValues {
         (c = Blue) implies (c.red = 0 and c.green = 0 and c.blue = 255)
         (c = Orange) implies (c.red = 255 and c.green = 165 and c.blue = 0)
         (c = Yellow) implies (c.red = 255 and c.green = 255 and c.blue = 0)
+        (c = Magenta) implies (c.red = 255 and c.green = 0 and c.blue = 255)
+        (c = Cyan) implies (c.red = 0 and c.green = 255 and c.blue = 255)
         (c = Purple) implies (c.red = 128 and c.green = 0 and c.blue = 128)
+        (c = SkyBlue) implies (c.red = 135 and c.green = 206 and c.blue = 235)
+        (c = Rose) implies (c.red = 255 and c.green = 0 and c.blue = 127)
+        (c = OceanGreen) implies (c.red = 46 and c.green = 139 and c.blue = 87)
+        (c = LeafGreen) implies (c.red = 50 and c.green = 205 and c.blue = 50)
         (c = Black) implies (c.red = 0 and c.green = 0 and c.blue = 0)
         (c = White) implies (c.red = 255 and c.green = 255 and c.blue = 255)
         (c = Gray) implies (c.red = 128 and c.green = 128 and c.blue = 128)
     }
 }
+
 
 pred wellformedComplementary[c1: Color, c2: Color] {
     -- Ensure RGB values are within valid range (0 to 255)
@@ -60,6 +83,29 @@ pred complementary[c1: Color, c2: Color] {
     c1.green = subtract[255, c2.green]
     c1.blue = subtract[255, c2.blue]
     wellformedComplementary[c1, c2]
+}
+
+pred monochrome[c1: Color, c2: Color] {
+    c1 = c2
+}
+
+pred analogous[c1: Color, c2: Color] {
+    rgbValues
+    abs[subtract[c1.red, c2.red]] <= 50 and abs[subtract[c1.green, c2.green]] <= 50 and abs[subtract[c1.blue, c2.blue]] <= 50
+}
+
+pred triadic[c1: Color, c2: Color, c3: Color] {
+    rgbValues
+    add[add[c1.red, c2.red], c3.red] >= 375
+    add[add[c1.red, c2.red], c3.red] <= 385
+
+    add[add[c1.green, c2.green], c3.green] >= 375
+    add[add[c1.green, c2.green], c3.green] <= 385
+
+    add[add[c1.blue, c2.blue], c3.blue] >= 375
+    add[add[c1.blue, c2.blue], c3.blue] <= 385
+
+
 }
 
 run {
@@ -93,7 +139,9 @@ pred seasonalityMatch[outfit: Outfit] {
     -- Enforce seasonality
     outfit.top.season = outfit.bottom.season
     outfit.top.season = outfit.shoes.season
-    outfit.outerwear = none or outfit.outerwear.season = outfit.top.season    
+    outfit.outerwear = none or outfit.outerwear.season = outfit.top.season   
+    outfit.outerwear != none implies outfit.outerwear.season in Winter or 
+        outfit.outerwear.season in Fall
 }
 
 pred formalityMatch[outfit: Outfit] {
@@ -101,6 +149,7 @@ pred formalityMatch[outfit: Outfit] {
     outfit.top.formality = outfit.bottom.formality
     outfit.top.formality = outfit.shoes.formality
     outfit.outerwear = none or outfit.outerwear.formality = outfit.top.formality
+    
 }
     
 pred wellformed[outfit: Outfit] {
@@ -110,18 +159,24 @@ pred wellformed[outfit: Outfit] {
     outfit.shoes.category = Shoe
     outfit.outerwear = none or outfit.outerwear.category = Outerwear
     all a: outfit.accessory | a.category = Accessory
+
 }
 
 pred colorRules[outfit: Outfit] {
-    -- Ensure at least one complementary color pair exists in the outfit
+    -- Ensure at least one color pattern pair exists in the outfit
     some c1, c2: Color | {
-        c1 != c2 and  -- Ensure c1 and c2 are distinct
+        c1 != c2 and  
         (c1 = outfit.top.color or c1 = outfit.bottom.color or c1 = outfit.shoes.color or c1 = outfit.outerwear.color) and
         (c2 = outfit.top.color or c2 = outfit.bottom.color or c2 = outfit.shoes.color or c2 = outfit.outerwear.color) and
-        complementary[c1, c2]
+        (complementary[c1, c2] or monochrome[c1, c2] or analogous[c1, c2])
     }
-
-    // complementary[outfit.top.color, outfit.bottom.color]
+    some c1, c2, c3: Color | {
+        c1 != c2 and c2 != c3 and c1 != c3 and
+        (c1 = outfit.top.color or c1 = outfit.bottom.color or c1 = outfit.shoes.color or c1 = outfit.outerwear.color) and
+        (c2 = outfit.top.color or c2 = outfit.bottom.color or c2 = outfit.shoes.color or c2 = outfit.outerwear.color) and
+        (c3 = outfit.top.color or c3 = outfit.bottom.color or c3 = outfit.shoes.color or c3 = outfit.outerwear.color) and
+        triadic[c1, c2, c3]
+    }
 
 }
 
@@ -135,4 +190,4 @@ pred wardrobeHasValidOutfits {
         colorRules[o]
 }
 
-run wardrobeHasValidOutfits for exactly 4 Season, exactly 1 Outfit, exactly 5 Clothing
+run wardrobeHasValidOutfits for exactly 4 Season, exactly 2 Outfit, exactly 10 Clothing
