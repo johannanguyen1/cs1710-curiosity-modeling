@@ -89,6 +89,27 @@ pred monochrome[c1: Color, c2: Color] {
     c1 = c2
 }
 
+/*-- Define a helper predicate to check if two colors have the same hue
+pred helperSameHue[c1: Color, c2: Color] {
+    -- Ensure the RGB ratios are the same (i.e., same hue)
+    multiply[c1.red, c2.green] = multiply[c2.red, c1.green]
+    multiply[c1.red, c2.blue] = multiply[c2.red, c1.blue]
+    multiply[c1.green, c2.blue] = multiply[c2.green, c1.blue]
+}
+
+-- Define a helper predicate to check if one color is a lighter/darker shade of the other
+pred helperDifferentShade[c1: Color, c2: Color] {
+    -- Ensure one color is a lighter/darker shade of the other
+    (c1.red > c2.red and c1.green > c2.green and c1.blue > c2.blue) or
+    (c1.red < c2.red and c1.green < c2.green and c1.blue < c2.blue)
+}
+
+-- Define the main predicate to check if two colors have the same hue but different shades
+pred sameHueDifferentShade[c1: Color, c2: Color] {
+    helperSameHue[c1, c2]
+    helperDifferentShade[c1, c2]
+}
+*/
 pred analogous[c1: Color, c2: Color] {
     rgbValues
     abs[subtract[c1.red, c2.red]] <= 50 and abs[subtract[c1.green, c2.green]] <= 50 and abs[subtract[c1.blue, c2.blue]] <= 50
@@ -111,6 +132,7 @@ pred triadic[c1: Color, c2: Color, c3: Color] {
 run {
     rgbValues
     some c1, c2: Color | complementary[c1, c2]
+    some c1, c2: Color | sameHueDifferentShade[c1, c2]
 } for exactly 9 Color, 10 Int
 
 
@@ -127,7 +149,7 @@ pred complementary[c1: Color, c2: Color] {
 }
 */
 -- Outfit definition
-sig Outfit {
+/*sig Outfit {
     top: one Clothing,
     bottom: one Clothing,
     outerwear: lone Clothing,
@@ -191,3 +213,4 @@ pred wardrobeHasValidOutfits {
 }
 
 run wardrobeHasValidOutfits for exactly 4 Season, exactly 2 Outfit, exactly 10 Clothing
+*/
