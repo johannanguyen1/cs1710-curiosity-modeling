@@ -25,20 +25,6 @@ one sig Summer, Winter, Spring, Fall extends Season {}
 abstract sig Formality {}
 one sig Casual, Business, Formal extends Formality {}
 
-// -- Define RGB values for each color
-// pred rgbValues {
-//     all c: Color | {
-//         (c = Red) implies (c.red = 255 and c.green = 0 and c.blue = 0)
-//         (c = Green) implies (c.red = 0 and c.green = 255 and c.blue = 0)
-//         (c = Blue) implies (c.red = 0 and c.green = 0 and c.blue = 255)
-//         (c = Orange) implies (c.red = 255 and c.green = 165 and c.blue = 0)
-//         (c = Yellow) implies (c.red = 255 and c.green = 255 and c.blue = 0)
-//         (c = Purple) implies (c.red = 128 and c.green = 0 and c.blue = 128)
-//         (c = Black) implies (c.red = 0 and c.green = 0 and c.blue = 0)
-//         (c = White) implies (c.red = 255 and c.green = 255 and c.blue = 255)
-//         (c = Gray) implies (c.red = 128 and c.green = 128 and c.blue = 128)
-//     }
-// }
 
 pred rgbValues {
     all c: Color | {
@@ -61,15 +47,49 @@ pred rgbValues {
 }
 
 
-pred wellformedComplementary[c1: Color, c2: Color] {
-    -- Ensure RGB values are within valid range (0 to 255)
-    c1.red >= 0 and c1.red <= 255
-    c1.green >= 0 and c1.green <= 255
-    c1.blue >= 0 and c1.blue <= 255
+pred warmColor[c: Color] {
+    c in Red or c in Orange or c in Yellow or c in Rose
+}
 
-    c2.red >= 0 and c2.red <= 255
-    c2.green >= 0 and c2.green <= 255
-    c2.blue >= 0 and c2.blue <= 255
+pred warmRGB[c: Color] {
+    // Warm colors have higher red and green values, and lower blue values
+    c.red > 128 and c.red < 255 and c.green < 128 and c.blue < c.red
+    wellformedRGB[c]
+}
+
+pred coolColor[c: Color] {
+    c in Blue or c in Green or c in Cyan or c in Purple or c in SkyBlue or c in OceanGreen or c in LeafGreen or c in Magenta
+}
+
+pred coolRGB[c: Color] {
+    // Cool colors have higher blue and green values, and lower red values
+    c.blue > 128 and c.green > 128 and c.red < c.blue
+    wellformedRGB[c]
+
+}
+
+// Ensure that predefined warm colors match their RGB definitions
+pred verifyWarmColors {
+    all c: Color | warmColor[c] implies warmRGB[c]
+
+}
+
+// Ensure that predefined cool colors match their RGB definitions
+pred verifyCoolColors {
+    all c: Color | coolColor[c] implies coolRGB[c]
+}
+
+pred wellformedRGB[c: Color] {
+    -- Ensure RGB values are within valid range (0 to 255)
+    c.red >= 0 and c.red <= 255
+    c.green >= 0 and c.green <= 255
+    c.blue >= 0 and c.blue <= 255
+}
+
+pred wellformedComplentary[c1: Color, c2: Color] {
+    wellformedRGB[c1]
+    wellformedRGB[c2]
+
 
     -- Ensure the RGB components add up to 255
     add[c1.red, c2.red] = 255
@@ -77,45 +97,58 @@ pred wellformedComplementary[c1: Color, c2: Color] {
     add[c1.blue, c2.blue] = 255
 }
 
-pred complementary[c1: Color, c2: Color] {
+pred complementaryColor[c1: Color, c2: Color] {
+    (c1 = Red and c2 = Green) or
+    (c1 = Green and c2 = Red) or
+    (c1 = Blue and c2 = Orange) or
+    (c1 = Orange and c2 = Blue) or
+    (c1 = Yellow and c2 = Purple) or
+    (c1 = Purple and c2 = Yellow) or
+    (c1 = Cyan and c2 = Rose) or
+    (c1 = Rose and c2 = Cyan)
+}
+
+pred complementaryRGB[c1: Color, c2: Color] {
     rgbValues
     c1.red = subtract[255, c2.red]
     c1.green = subtract[255, c2.green]
     c1.blue = subtract[255, c2.blue]
-    wellformedComplementary[c1, c2]
+    // wellformedComplementary[c1, c2]
 }
 
-pred monochrome[c1: Color, c2: Color] {
-    c1 = c2
+// Ensure that predefined complementary colors match their RGB definitions
+pred verifyComplementaryColors {
+    all c1, c2: Color | complementaryColor[c1, c2] implies complementaryRGB[c1, c2]
 }
 
-/*-- Define a helper predicate to check if two colors have the same hue
-pred helperSameHue[c1: Color, c2: Color] {
-    -- Ensure the RGB ratios are the same (i.e., same hue)
-    multiply[c1.red, c2.green] = multiply[c2.red, c1.green]
-    multiply[c1.red, c2.blue] = multiply[c2.red, c1.blue]
-    multiply[c1.green, c2.blue] = multiply[c2.green, c1.blue]
+
+// Define analogous color groups based on predefined sets
+pred analogousColor[c1: Color, c2: Color] {
+    (c1 = Red and c2 = Orange) or
+    (c1 = Orange and c2 = Red) or
+    (c1 = Orange and c2 = Yellow) or
+    (c1 = Yellow and c2 = Orange) or
+    (c1 = Green and c2 = Cyan) or
+    (c1 = Cyan and c2 = Green) or
+    (c1 = Blue and c2 = Purple) or
+    (c1 = Purple and c2 = Blue)
 }
 
--- Define a helper predicate to check if one color is a lighter/darker shade of the other
-pred helperDifferentShade[c1: Color, c2: Color] {
-    -- Ensure one color is a lighter/darker shade of the other
-    (c1.red > c2.red and c1.green > c2.green and c1.blue > c2.blue) or
-    (c1.red < c2.red and c1.green < c2.green and c1.blue < c2.blue)
-}
-
--- Define the main predicate to check if two colors have the same hue but different shades
-pred sameHueDifferentShade[c1: Color, c2: Color] {
-    helperSameHue[c1, c2]
-    helperDifferentShade[c1, c2]
-}
-*/
-pred analogous[c1: Color, c2: Color] {
+// Verify analogous colors using RGB values
+pred analogousRGB[c1: Color, c2: Color] {
     rgbValues
     abs[subtract[c1.red, c2.red]] <= 50 and abs[subtract[c1.green, c2.green]] <= 50 and abs[subtract[c1.blue, c2.blue]] <= 50
 }
 
-pred triadic[c1: Color, c2: Color, c3: Color] {
+// Ensure that predefined analogous colors match their RGB definitions
+pred verifyAnalogousColors {
+    all c1, c2: Color | analogousColor[c1, c2] implies analogousRGB[c1, c2]
+}
+
+
+
+
+pred triadicRGB[c1: Color, c2: Color, c3: Color] {
     rgbValues
     add[add[c1.red, c2.red], c3.red] >= 375
     add[add[c1.red, c2.red], c3.red] <= 385
@@ -129,25 +162,34 @@ pred triadic[c1: Color, c2: Color, c3: Color] {
 
 }
 
+// Define triadic color groups based on predefined sets
+pred triadicColor[c1: Color, c2: Color, c3: Color] {
+    (c1 = Red and c2 = Green and c3 = Blue) or
+    (c1 = Green and c2 = Blue and c3 = Red) or
+    (c1 = Blue and c2 = Red and c3 = Green) or
+    (c1 = Orange and c2 = Purple and c3 = Cyan) or
+    (c1 = Purple and c2 = Cyan and c3 = Orange) or
+    (c1 = Cyan and c2 = Orange and c3 = Purple)
+}
+
+// Ensure that predefined triadic colors match their RGB definitions
+pred verifyTriadicColors {
+    all c1, c2, c3: Color | triadicColor[c1, c2, c3] implies triadicRGB[c1, c2, c3]
+}
+
+
 run {
     rgbValues
-    some c1, c2: Color | complementary[c1, c2]
-    some c1, c2: Color | sameHueDifferentShade[c1, c2]
-} for exactly 9 Color, 10 Int
+    all c: Color | {
+        verifyWarmColors
+        verifyCoolColors
+        // verifyComplementaryColors
+        // verifyAnalogousColors
+        // verifyTriadicColors
+    }
+} for exactly 9 Color, 9 Int
 
 
-/*-- Define complementary color pairs
-pred complementary[c1: Color, c2: Color] {
-    (c1 = Red and c2 = Green) or
-    (c1 = Green and c2 = Red) or
-    (c1 = Blue and c2 = Orange) or
-    (c1 = Orange and c2 = Blue) or
-    (c1 = Yellow and c2 = Purple) or
-    (c1 = Purple and c2 = Yellow) or
-    ((c1 = Black or c1 = White or c1 = Gray) and 
-        (c2 = Black or c2 = White or c2 = Gray))
-}
-*/
 -- Outfit definition
 /*sig Outfit {
     top: one Clothing,
