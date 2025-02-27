@@ -46,14 +46,15 @@ pred rgbValues {
     }
 }
 
-
 pred warmColor[c: Color] {
     c in Red or c in Orange or c in Yellow or c in Rose
 }
 
 pred warmRGB[c: Color] {
     // Warm colors have higher red and green values, and lower blue values
-    c.red > 128 and c.red < 255 and c.green < 128 and c.blue < c.red
+    //c.red > 128 and c.red < 255 and c.green < 128 and c.blue < c.red
+    c.red > c.blue
+    c.green >= 0 and c.green <= 255
     wellformedRGB[c]
 }
 
@@ -63,20 +64,21 @@ pred coolColor[c: Color] {
 
 pred coolRGB[c: Color] {
     // Cool colors have higher blue and green values, and lower red values
-    c.blue > 128 and c.green > 128 and c.red < c.blue
+    //c.blue > 128 and c.green > 128 and c.red < c.blue
+    c.blue >= c.red or c.green >= c.red
     wellformedRGB[c]
 
 }
 
 // Ensure that predefined warm colors match their RGB definitions
-pred verifyWarmColors {
-    all c: Color | warmColor[c] implies warmRGB[c]
+pred verifyWarmColors[c: Color] {
+    warmColor[c] implies warmRGB[c]
 
 }
 
 // Ensure that predefined cool colors match their RGB definitions
-pred verifyCoolColors {
-    all c: Color | coolColor[c] implies coolRGB[c]
+pred verifyCoolColors[c: Color] {
+    coolColor[c] implies coolRGB[c]
 }
 
 pred wellformedRGB[c: Color] {
@@ -181,13 +183,13 @@ pred verifyTriadicColors {
 run {
     rgbValues
     all c: Color | {
-        verifyWarmColors
-        verifyCoolColors
+        //verifyWarmColors[c]
+        verifyCoolColors[c]
         // verifyComplementaryColors
         // verifyAnalogousColors
         // verifyTriadicColors
     }
-} for exactly 9 Color, 9 Int
+} for exactly 15 Color, 9 Int
 
 
 -- Outfit definition
