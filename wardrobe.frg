@@ -17,7 +17,7 @@ abstract sig Color {
     blue: one Int
 }
 
-one sig Red, Green, Blue, Orange, Yellow, Magenta, Cyan, Purple, SkyBlue, Rose, OceanGreen, LeafGreen, Black, White, Gray extends Color {}
+one sig Red, Green, Blue, Orange, Yellow, Magenta, Cyan, Purple, SkyBlue, Rose, OceanGreen, Chartreuse, Black, White, Gray extends Color {}
 
 abstract sig Season {}
 one sig Summer, Winter, Spring, Fall extends Season {}
@@ -31,18 +31,19 @@ pred rgbValues {
         (c = Red) implies (c.red = 255 and c.green = 0 and c.blue = 0)
         (c = Green) implies (c.red = 0 and c.green = 255 and c.blue = 0)
         (c = Blue) implies (c.red = 0 and c.green = 0 and c.blue = 255)
-        (c = Orange) implies (c.red = 255 and c.green = 165 and c.blue = 0)
+        (c = Orange) implies (c.red = 255 and c.green = 128 and c.blue = 0)
         (c = Yellow) implies (c.red = 255 and c.green = 255 and c.blue = 0)
         (c = Magenta) implies (c.red = 255 and c.green = 0 and c.blue = 255)
         (c = Cyan) implies (c.red = 0 and c.green = 255 and c.blue = 255)
-        (c = Purple) implies (c.red = 128 and c.green = 0 and c.blue = 128)
-        (c = SkyBlue) implies (c.red = 135 and c.green = 206 and c.blue = 235)
+        (c = Purple) implies (c.red = 128 and c.green = 0 and c.blue = 255)
+        (c = SkyBlue) implies (c.red = 0 and c.green = 127 and c.blue = 255)
         (c = Rose) implies (c.red = 255 and c.green = 0 and c.blue = 127)
-        (c = OceanGreen) implies (c.red = 46 and c.green = 139 and c.blue = 87)
-        (c = LeafGreen) implies (c.red = 50 and c.green = 205 and c.blue = 50)
+        (c = OceanGreen) implies (c.red = 0 and c.green = 255 and c.blue = 128)
+        (c = Chartreuse) implies (c.red = 127 and c.green = 255 and c.blue = 0)
         (c = Black) implies (c.red = 0 and c.green = 0 and c.blue = 0)
         (c = White) implies (c.red = 255 and c.green = 255 and c.blue = 255)
         (c = Gray) implies (c.red = 128 and c.green = 128 and c.blue = 128)
+
     }
 }
 
@@ -59,7 +60,7 @@ pred warmRGB[c: Color] {
 }
 
 pred coolColor[c: Color] {
-    c in Blue or c in Green or c in Cyan or c in Purple or c in SkyBlue or c in OceanGreen or c in LeafGreen or c in Magenta
+    c in Blue or c in Green or c in Cyan or c in Purple or c in SkyBlue or c in OceanGreen or c in Chartreuse or c in Magenta
 }
 
 pred coolRGB[c: Color] {
@@ -88,63 +89,75 @@ pred wellformedRGB[c: Color] {
     c.blue >= 0 and c.blue <= 255
 }
 
-pred wellformedComplentary[c1: Color, c2: Color] {
+
+pred complementaryColor[c1: Color, c2: Color] {
+    (c1 = Red and c2 = Cyan) or
+    (c1 = Green and c2 = Magenta) or
+    (c1 = Blue and c2 = Yellow) or
+    (c1 = Chartreuse and c2 = Purple) or
+    (c1 = OceanGreen and c2 = Rose) or
+    (c1 = Orange and c2 = SkyBlue) or
+    (c1 = Black and c2 = White) 
+}
+
+
+
+pred complementaryRGB[c1: Color, c2: Color] {
     wellformedRGB[c1]
     wellformedRGB[c2]
+    
+    // c2.red = subtract[255, c1.red]
+    // c2.green = subtract[255, c1.green]
+    // c2.blue = subtract[255, c1.blue]
 
-
-    -- Ensure the RGB components add up to 255
     add[c1.red, c2.red] = 255
     add[c1.green, c2.green] = 255
     add[c1.blue, c2.blue] = 255
 }
 
-pred complementaryColor[c1: Color, c2: Color] {
-    (c1 = Red and c2 = Green) or
-    (c1 = Green and c2 = Red) or
-    (c1 = Blue and c2 = Orange) or
-    (c1 = Orange and c2 = Blue) or
-    (c1 = Yellow and c2 = Purple) or
-    (c1 = Purple and c2 = Yellow) or
-    (c1 = Cyan and c2 = Rose) or
-    (c1 = Rose and c2 = Cyan)
-}
-
-pred complementaryRGB[c1: Color, c2: Color] {
-    rgbValues
-    c1.red = subtract[255, c2.red]
-    c1.green = subtract[255, c2.green]
-    c1.blue = subtract[255, c2.blue]
-    // wellformedComplementary[c1, c2]
-}
-
 // Ensure that predefined complementary colors match their RGB definitions
-pred verifyComplementaryColors {
-    all c1, c2: Color | complementaryColor[c1, c2] implies complementaryRGB[c1, c2]
+pred verifyComplementaryColors[c1, c2: Color] {
+    complementaryColor[c1, c2] implies complementaryRGB[c1, c2]
 }
 
 
 // Define analogous color groups based on predefined sets
 pred analogousColor[c1: Color, c2: Color] {
+    
     (c1 = Red and c2 = Orange) or
-    (c1 = Orange and c2 = Red) or
     (c1 = Orange and c2 = Yellow) or
-    (c1 = Yellow and c2 = Orange) or
-    (c1 = Green and c2 = Cyan) or
-    (c1 = Cyan and c2 = Green) or
-    (c1 = Blue and c2 = Purple) or
-    (c1 = Purple and c2 = Blue)
+    (c1 = Magenta and c2 = Purple) or
+    (c1 = Rose and c2 = Magenta) or
+    (c1 = Purple and c2 = Blue) or
+    (c1 = Blue and c2 = SkyBlue) or
+    (c1 = SkyBlue and c2 = Cyan) or
+    (c1 = Chartreuse and c2 = Green) or
+    (c1 = Chartreuse and c2 = Yellow) or
+    (c1 = Rose and c2 = Red) or
+    (c1 = OceanGreen and c2 = Cyan) or
+    (c1 = Green and c2 = OceanGreen)
+
 }
 
-// Verify analogous colors using RGB values
+// Define analogous colors based on proximity in RGB values
 pred analogousRGB[c1: Color, c2: Color] {
-    rgbValues
-    abs[subtract[c1.red, c2.red]] <= 50 and abs[subtract[c1.green, c2.green]] <= 50 and abs[subtract[c1.blue, c2.blue]] <= 50
+
+    wellformedRGB[c1]
+    wellformedRGB[c2]
+
+// Case 1: Red values are the same, and green and blue differ by ≤ 128
+    (c1.red = c2.red and c1.green = c2.green and abs[subtract[c1.blue, c2.blue]] <= 128) or
+    
+    // Case 2: Green values are the same, and red and blue differ by ≤ 128
+    (c1.green = c2.green and abs[subtract[c1.red, c2.red]] <= 128 and c1.blue = c2.blue) or
+    
+    // Case 3: Blue values are the same, and red and green differ by ≤ 128
+    (c1.blue = c2.blue and c1.red = c2.red and abs[subtract[c1.green, c2.green]] <= 128)
 }
 
 // Ensure that predefined analogous colors match their RGB definitions
-pred verifyAnalogousColors {
-    all c1, c2: Color | analogousColor[c1, c2] implies analogousRGB[c1, c2]
+pred verifyAnalogousColors[c1, c2: Color] {
+    analogousColor[c1, c2] implies analogousRGB[c1, c2]
 }
 
 
@@ -182,13 +195,13 @@ pred verifyTriadicColors {
 
 run {
     rgbValues
-    all c: Color | {
+    all c1, c2: Color | {
         //verifyWarmColors[c]
-        verifyCoolColors[c]
-        // verifyComplementaryColors
-        // verifyAnalogousColors
+        // verifyCoolColors[c]
+        // verifyComplementaryColors[c1, c2]
+        verifyAnalogousColors[c1, c2]
         // verifyTriadicColors
-    }
+     }
 } for exactly 15 Color, 9 Int
 
 
