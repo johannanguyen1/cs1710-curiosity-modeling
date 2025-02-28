@@ -105,10 +105,6 @@ pred complementaryColor[c1: Color, c2: Color] {
 pred complementaryRGB[c1: Color, c2: Color] {
     wellformedRGB[c1]
     wellformedRGB[c2]
-    
-    // c2.red = subtract[255, c1.red]
-    // c2.green = subtract[255, c1.green]
-    // c2.blue = subtract[255, c1.blue]
 
     add[c1.red, c2.red] = 255
     add[c1.green, c2.green] = 255
@@ -145,7 +141,7 @@ pred analogousRGB[c1: Color, c2: Color] {
     wellformedRGB[c1]
     wellformedRGB[c2]
 
-// Case 1: Red values are the same, and green and blue differ by ≤ 128
+    // Case 1: Red values are the same, and green and blue differ by ≤ 128
     (c1.red = c2.red and c1.green = c2.green and abs[subtract[c1.blue, c2.blue]] <= 128) or
     
     // Case 2: Green values are the same, and red and blue differ by ≤ 128
@@ -155,58 +151,27 @@ pred analogousRGB[c1: Color, c2: Color] {
     (c1.blue = c2.blue and c1.red = c2.red and abs[subtract[c1.green, c2.green]] <= 128)
 }
 
+
 // Ensure that predefined analogous colors match their RGB definitions
 pred verifyAnalogousColors[c1, c2: Color] {
     analogousColor[c1, c2] implies analogousRGB[c1, c2]
 }
 
 
-
-
-pred triadicRGB[c1: Color, c2: Color, c3: Color] {
-    rgbValues
-    add[add[c1.red, c2.red], c3.red] >= 375
-    add[add[c1.red, c2.red], c3.red] <= 385
-
-    add[add[c1.green, c2.green], c3.green] >= 375
-    add[add[c1.green, c2.green], c3.green] <= 385
-
-    add[add[c1.blue, c2.blue], c3.blue] >= 375
-    add[add[c1.blue, c2.blue], c3.blue] <= 385
-
-
+pred neutralColor[c: Color] {
+    c in Black or c in White or c in Gray
 }
 
-// Define triadic color groups based on predefined sets
-pred triadicColor[c1: Color, c2: Color, c3: Color] {
-    (c1 = Red and c2 = Green and c3 = Blue) or
-    (c1 = Green and c2 = Blue and c3 = Red) or
-    (c1 = Blue and c2 = Red and c3 = Green) or
-    (c1 = Orange and c2 = Purple and c3 = Cyan) or
-    (c1 = Purple and c2 = Cyan and c3 = Orange) or
-    (c1 = Cyan and c2 = Orange and c3 = Purple)
+pred neutralMatch[o: Outfit] {
+    neutralColor[o.top.color] 
+    and neutralColor[o.bottom.color]
+    and (no o.outerwear or neutralColor[o.outerwear.color])
+    and neutralColor[o.accessory.color]
+    and neutralColor[o.shoes.color]
 }
-
-// Ensure that predefined triadic colors match their RGB definitions
-pred verifyTriadicColors {
-    all c1, c2, c3: Color | triadicColor[c1, c2, c3] implies triadicRGB[c1, c2, c3]
-}
-
-
-run {
-    rgbValues
-    all c1, c2: Color | {
-        //verifyWarmColors[c]
-        // verifyCoolColors[c]
-        // verifyComplementaryColors[c1, c2]
-        verifyAnalogousColors[c1, c2]
-        // verifyTriadicColors
-     }
-} for exactly 15 Color, 9 Int
-
 
 -- Outfit definition
-/*sig Outfit {
+sig Outfit {
     top: one Clothing,
     bottom: one Clothing,
     outerwear: lone Clothing,
@@ -239,35 +204,49 @@ pred wellformed[outfit: Outfit] {
     outfit.outerwear = none or outfit.outerwear.category = Outerwear
     all a: outfit.accessory | a.category = Accessory
 
+    colorRules[outfit]
+
 }
 
 pred colorRules[outfit: Outfit] {
-    -- Ensure at least one color pattern pair exists in the outfit
-    some c1, c2: Color | {
-        c1 != c2 and  
-        (c1 = outfit.top.color or c1 = outfit.bottom.color or c1 = outfit.shoes.color or c1 = outfit.outerwear.color) and
-        (c2 = outfit.top.color or c2 = outfit.bottom.color or c2 = outfit.shoes.color or c2 = outfit.outerwear.color) and
-        (complementary[c1, c2] or monochrome[c1, c2] or analogous[c1, c2])
-    }
-    some c1, c2, c3: Color | {
-        c1 != c2 and c2 != c3 and c1 != c3 and
-        (c1 = outfit.top.color or c1 = outfit.bottom.color or c1 = outfit.shoes.color or c1 = outfit.outerwear.color) and
-        (c2 = outfit.top.color or c2 = outfit.bottom.color or c2 = outfit.shoes.color or c2 = outfit.outerwear.color) and
-        (c3 = outfit.top.color or c3 = outfit.bottom.color or c3 = outfit.shoes.color or c3 = outfit.outerwear.color) and
-        triadic[c1, c2, c3]
-    }
 
+    -- Ensure at least one valid color pattern pair exists in the outfit
+    let c1 = outfit.top.color, c2 = outfit.bottom.color, c3 = outfit.shoes.color, c4 = outfit.accessory.color,
+        c5 = outfit.outerwear.color |
+    
+    -- Check for complementary colors between the top, bottom, shoes, accessory, and outerwear
+    (complementaryColor[c1, c2] or complementaryColor[c1, c3] or complementaryColor[c1, c4] or complementaryColor[c1, c5] or
+     complementaryColor[c2, c3] or complementaryColor[c2, c4] or complementaryColor[c2, c5] or
+     complementaryColor[c3, c4] or complementaryColor[c3, c5] or complementaryColor[c4, c5]) or
+    
+    -- Check for neutral color match (if all items are neutral)
+    neutralMatch[outfit] or
+    
+    -- Check for analogous colors between any two items
+    (analogousColor[c1, c2] or analogousColor[c1, c3] or analogousColor[c1, c4] or analogousColor[c1, c5] or
+     analogousColor[c2, c3] or analogousColor[c2, c4] or analogousColor[c2, c5] or
+     analogousColor[c3, c4] or analogousColor[c3, c5] or analogousColor[c4, c5])
 }
 
 -- Ensure that at least one valid outfit exists for each season
 pred wardrobeHasValidOutfits {
-    all s: Season | some o: Outfit | 
+    all s: Season | all o: Outfit | 
         // o.top.season = s and
         seasonalityMatch[o] and 
         formalityMatch[o] and 
-        wellformed[o] and 
-        colorRules[o]
+        wellformed[o] 
 }
 
-run wardrobeHasValidOutfits for exactly 4 Season, exactly 2 Outfit, exactly 10 Clothing
-*/
+// run {
+//     rgbValues
+//     all c1, c2: Color | {
+//         //verifyWarmColors[c]
+//         // verifyCoolColors[c]
+//         // verifyComplementaryColors[c1, c2]
+//         verifyAnalogousColors[c1, c2]
+//      }
+// } for exactly 15 Color, 9 Int
+
+
+// run wardrobeHasValidOutfits for exactly 4 Season, exactly 2 Outfit, exactly 10 Clothing, exactly 15 Color, 9 Int
+run wardrobeHasValidOutfits for 4 Season, 4 Outfit, 25 Clothing, 15 Color, 9 Int
