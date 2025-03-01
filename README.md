@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 # Curiosity-Modeling---Wardrobe
-=======
 # README: Essential Wardrobe Model
->>>>>>> 4b916e308210f1104668aa46f0087d5e7896f1f5
 
 Project Objective: 
 This project models a wardrobe system where clothing items (tops, bottoms, shoes, outerwear, and accessories) are categorized and described by attributes such as color, season, and formality. Our objective is to create valid outfits, which are described by color harmony and seasonal/formality matching. For example, a valid summer, casual outfit would contain a top, bottom, shoes, and accessories categorized in the summer season and casual formality. Our model also contains color relationships like complementary, analogous, and neutral colors, and ensures that each valid outfit fulfils one of these color relationships. We explicitly define which color pairings conform to each relationship, but we reenforce these definitions through RGB calculations.
@@ -41,13 +38,6 @@ Preds:
 
 Testing: What tests did you write to test your model itself? What tests did you write to verify properties about your domain area? Feel free to give a high-level overview of this.
 
-<<<<<<< HEAD
 We tested within our model with predicates. For example, we have two predicates per color relationship, and use a verify________Colors to enforce that the definitions of our colors align with their mathematical calculation using RGB values. Our verifyAnalogousColors and verifyComplementaryColors guarantee that the two colors specified fit the properties of analogous and complementary colors mathematically if we define the color itself to be complementary or analogous. Our wellformed outfit predicate is fed into our wardroneHasValidOutfits predicates, in addition to our other properties of having a valid outfit, ensure that all the outfits are wellformed when we look in the Sterling visualization. We implement the same concept for RGB values when we define constraints for the numerical values such as ensuring positive values and within in the bounds 0 and 255. After creating run statements for our testing and validation predicates, we were able to observe the tables in the Sterling visualizations to ensurre wellformedness.
-
-
-=======
-We tested within our model with predicates. For example, we have two predicates per color relationship, and use a verify________Colors to enforce that the definitions of our colors align with their mathematical calculation using RGB values. 
->>>>>>> 4b916e308210f1104668aa46f0087d5e7896f1f5
-
 
 
