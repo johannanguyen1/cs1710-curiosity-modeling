@@ -41,4 +41,7 @@ Testing: What tests did you write to test your model itself? What tests did you 
 We tested within our model with predicates. For example, we have two predicates per color relationship, and use a verify________Colors to enforce that the definitions of our colors align with their mathematical calculation using RGB values. Our verifyAnalogousColors and verifyComplementaryColors guarantee that the two colors specified fit the properties of analogous and complementary colors mathematically if we define the color itself to be complementary or analogous. Our wellformed outfit predicate is fed into our wardroneHasValidOutfits predicates, in addition to our other properties of having a valid outfit, ensure that all the outfits are wellformed when we look in the Sterling visualization. We implement the same concept for RGB values when we define constraints for the numerical values such as ensuring positive values and within in the bounds 0 and 255. After creating run statements for our testing and validation predicates, we were able to observe the tables in the Sterling visualizations to ensurre wellformedness.
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 1466cbde20322659be72d6435a785611b807d3a5
