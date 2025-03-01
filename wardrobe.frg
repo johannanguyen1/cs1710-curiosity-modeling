@@ -1,6 +1,7 @@
 #lang forge/froglet
 // option bitwidth 9
 
+-- Defines what makes up an article of clothing
 sig Clothing {
     category: one Category,
     color: one Color,
@@ -8,24 +9,30 @@ sig Clothing {
     formality: one Formality
 }
 
+-- Defines the categories of clothing possible in this universe
 abstract sig Category {}
 one sig Top, Bottom, Outerwear, Accessory, Shoe extends Category {}
 
+-- Define a red, green, blue RGB field for each color
 abstract sig Color {
     red: one Int,
     green: one Int,
     blue: one Int
 }
 
+
+-- Colors in the color wheel
 one sig Red, Green, Blue, Orange, Yellow, Magenta, Cyan, Purple, SkyBlue, Rose, OceanGreen, Chartreuse, Black, White, Gray extends Color {}
 
+-- For outfit preds: defines the seasons
 abstract sig Season {}
 one sig Summer, Winter, Spring, Fall extends Season {}
 
+-- For outfit preds: defines different types of formality
 abstract sig Formality {}
 one sig Casual, Business, Formal extends Formality {}
 
-
+-- Assigns each of the colors in the color wheel set RGB  values
 pred rgbValues {
     all c: Color | {
         (c = Red) implies (c.red = 255 and c.green = 0 and c.blue = 0)
@@ -43,53 +50,17 @@ pred rgbValues {
         (c = Black) implies (c.red = 0 and c.green = 0 and c.blue = 0)
         (c = White) implies (c.red = 255 and c.green = 255 and c.blue = 255)
         (c = Gray) implies (c.red = 128 and c.green = 128 and c.blue = 128)
-
     }
 }
 
-pred warmColor[c: Color] {
-    c in Red or c in Orange or c in Yellow or c in Rose
-}
-
-pred warmRGB[c: Color] {
-    // Warm colors have higher red and green values, and lower blue values
-    //c.red > 128 and c.red < 255 and c.green < 128 and c.blue < c.red
-    c.red > c.blue
-    c.green >= 0 and c.green <= 255
-    wellformedRGB[c]
-}
-
-pred coolColor[c: Color] {
-    c in Blue or c in Green or c in Cyan or c in Purple or c in SkyBlue or c in OceanGreen or c in Chartreuse or c in Magenta
-}
-
-pred coolRGB[c: Color] {
-    // Cool colors have higher blue and green values, and lower red values
-    //c.blue > 128 and c.green > 128 and c.red < c.blue
-    c.blue >= c.red or c.green >= c.red
-    wellformedRGB[c]
-
-}
-
-// Ensure that predefined warm colors match their RGB definitions
-pred verifyWarmColors[c: Color] {
-    warmColor[c] implies warmRGB[c]
-
-}
-
-// Ensure that predefined cool colors match their RGB definitions
-pred verifyCoolColors[c: Color] {
-    coolColor[c] implies coolRGB[c]
-}
-
+-- Called to ensure the RGB values assigned are within a valid range (0 to 255)
 pred wellformedRGB[c: Color] {
-    -- Ensure RGB values are within valid range (0 to 255)
     c.red >= 0 and c.red <= 255
     c.green >= 0 and c.green <= 255
     c.blue >= 0 and c.blue <= 255
 }
 
-
+-- Defines if two given colors are complementary
 pred complementaryColor[c1: Color, c2: Color] {
     (c1 = Red and c2 = Cyan) or
     (c1 = Green and c2 = Magenta) or
@@ -100,6 +71,7 @@ pred complementaryColor[c1: Color, c2: Color] {
     (c1 = Black and c2 = White) 
 }
 
+-- Ensures two colors are mathematically complementary
 pred complementaryRGB[c1: Color, c2: Color] {
     wellformedRGB[c1]
     wellformedRGB[c2]
@@ -109,13 +81,13 @@ pred complementaryRGB[c1: Color, c2: Color] {
     add[c1.blue, c2.blue] = 255
 }
 
-// Ensure that predefined complementary colors match their RGB definitions
+-- Ensure that predefined complementary colors match their RGB definitions
 pred verifyComplementaryColors[c1, c2: Color] {
     complementaryColor[c1, c2] implies complementaryRGB[c1, c2]
 }
 
 
-// Define analogous color groups based on predefined sets
+-- Define analogous color groups based on predefined sets
 pred analogousColor[c1: Color, c2: Color] {
     
     (c1 = Red and c2 = Orange) or
@@ -133,33 +105,34 @@ pred analogousColor[c1: Color, c2: Color] {
 
 }
 
-// Define analogous colors based on proximity in RGB values
+-- Define analogous colors based on proximity in RGB values
 pred analogousRGB[c1: Color, c2: Color] {
 
     wellformedRGB[c1]
     wellformedRGB[c2]
 
-    // Case 1: Red values are the same, and green and blue differ by ≤ 128
+    -- Case 1: Red values are the same, and green and blue differ by ≤ 128
     (c1.red = c2.red and c1.green = c2.green and abs[subtract[c1.blue, c2.blue]] <= 128) or
     
-    // Case 2: Green values are the same, and red and blue differ by ≤ 128
+    -- Case 2: Green values are the same, and red and blue differ by ≤ 128
     (c1.green = c2.green and abs[subtract[c1.red, c2.red]] <= 128 and c1.blue = c2.blue) or
     
-    // Case 3: Blue values are the same, and red and green differ by ≤ 128
+    -- Case 3: Blue values are the same, and red and green differ by ≤ 128
     (c1.blue = c2.blue and c1.red = c2.red and abs[subtract[c1.green, c2.green]] <= 128)
 }
 
 
-// Ensure that predefined analogous colors match their RGB definitions
+-- Ensure that predefined analogous colors match their RGB definitions
 pred verifyAnalogousColors[c1, c2: Color] {
     analogousColor[c1, c2] implies analogousRGB[c1, c2]
 }
 
-
+-- Defines what a netural color is
 pred neutralColor[c: Color] {
     c in Black or c in White or c in Gray
 }
 
+-- Defines an entire neutral outfit match
 pred neutralMatch[o: Outfit] {
     neutralColor[o.top.color] 
     and neutralColor[o.bottom.color]
@@ -167,6 +140,10 @@ pred neutralMatch[o: Outfit] {
     and neutralColor[o.accessory.color]
     and neutralColor[o.shoes.color]
 }
+
+
+
+//////////////////////////////////////////
 
 -- Outfit definition
 sig Outfit {
@@ -177,8 +154,8 @@ sig Outfit {
     shoes: one Clothing
 }
 
+-- Enforce seasonality
 pred seasonalityMatch[outfit: Outfit] {
-    -- Enforce seasonality
     outfit.top.season = outfit.bottom.season
     outfit.top.season = outfit.shoes.season
     outfit.outerwear = none or outfit.outerwear.season = outfit.top.season   
@@ -186,16 +163,16 @@ pred seasonalityMatch[outfit: Outfit] {
         outfit.outerwear.season in Fall
 }
 
+-- Ensure formality match
 pred formalityMatch[outfit: Outfit] {
-    -- Ensure formality match
     outfit.top.formality = outfit.bottom.formality
     outfit.top.formality = outfit.shoes.formality
     outfit.outerwear = none or outfit.outerwear.formality = outfit.top.formality
     
 }
-    
+
+-- Ensure valid outfit composition
 pred wellformed[outfit: Outfit] {
-    -- Ensure valid outfit composition
     outfit.top.category = Top
     outfit.bottom.category = Bottom
     outfit.shoes.category = Shoe
@@ -205,7 +182,6 @@ pred wellformed[outfit: Outfit] {
 }
 
 pred colorRules[outfit: Outfit] {
-
     -- Ensure at least one valid color pattern pair exists in the outfit
     let c1 = outfit.top.color, c2 = outfit.bottom.color, c3 = outfit.shoes.color, c4 = outfit.accessory.color,
         c5 = outfit.outerwear.color | {
@@ -226,15 +202,6 @@ pred colorRules[outfit: Outfit] {
 
 }
 
-pred warmOrCool[outfit: Outfit] {
-    -- Ensure at least one valid color pattern pair exists in the outfit
-    let c1 = outfit.top.color, c2 = outfit.bottom.color, c3 = outfit.shoes.color, c4 = outfit.accessory.color,
-        c5 = outfit.outerwear.color | {
-            (warmColor[c1] and warmColor[c2] and warmColor[c3] and warmColor[c4] and (no c5 or warmColor[c5])) or
-            (coolColor[c1] and coolColor[c2] and coolColor[c3] and coolColor[c4] and (no c5 or coolColor[c5]))
-        }
-}
-
 -- Ensure that at least one valid outfit exists for each season
 pred wardrobeHasValidOutfits {
     all s: Season | 
@@ -244,21 +211,35 @@ pred wardrobeHasValidOutfits {
                 o.top.formality = f and
                 seasonalityMatch[o] and 
                 formalityMatch[o] and 
-                wellformed[o] 
+                wellformed[o] and
                 colorRules[o]
 
 }
 
-
+// Verify analagous colors predicate using helper verify analogous function
 run {
     rgbValues
     all c1, c2: Color | {
-        //verifyWarmColors[c]
-        // verifyCoolColors[c]
-        // verifyComplementaryColors[c1, c2]
         verifyAnalogousColors[c1, c2]
+    
      }
 } for exactly 15 Color, 9 Int
 
+// Verify complementary colors predicate using helper verify complementary function
+run {
+    rgbValues
+    all c1, c2: Color | {
+        verifyComplementaryColors[c1, c2]
+    }
+} for exactly 15 Color, 9 Int
 
+// Verify wellformedness for all colors in this universe
+run {
+    rgbValues
+    all c: Color | {
+        wellformedRGB[c]
+     }
+} for exactly 15 Color, 9 Int
+
+// Verify wardrobe has valid outfits using helper predicate
 run wardrobeHasValidOutfits for 4 Season, 3 Formality, 12 Outfit, 48 Clothing, 15 Color, 9 Int
