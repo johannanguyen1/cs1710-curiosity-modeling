@@ -230,11 +230,14 @@ pred colorRules[outfit: Outfit] {
 
 -- Ensure that at least one valid outfit exists for each season
 pred wardrobeHasValidOutfits {
-    all s: Season | all o: Outfit | 
-        // o.top.season = s and
-        seasonalityMatch[o] and 
-        formalityMatch[o] and 
-        wellformed[o] 
+    all s: Season | 
+        all f: Formality |
+            some o: Outfit | 
+                o.top.season = s and 
+                o.top.formality = f and
+                seasonalityMatch[o] and 
+                formalityMatch[o] and 
+                wellformed[o]
 }
 
 // run {
@@ -248,5 +251,4 @@ pred wardrobeHasValidOutfits {
 // } for exactly 15 Color, 9 Int
 
 
-// run wardrobeHasValidOutfits for exactly 4 Season, exactly 2 Outfit, exactly 10 Clothing, exactly 15 Color, 9 Int
-run wardrobeHasValidOutfits for 4 Season, 4 Outfit, 25 Clothing, 15 Color, 9 Int
+run wardrobeHasValidOutfits for 4 Season, 3 Formality, 12 Outfit, 48 Clothing, 15 Color, 9 Int
