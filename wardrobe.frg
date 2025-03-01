@@ -100,8 +100,6 @@ pred complementaryColor[c1: Color, c2: Color] {
     (c1 = Black and c2 = White) 
 }
 
-
-
 pred complementaryRGB[c1: Color, c2: Color] {
     wellformedRGB[c1]
     wellformedRGB[c2]
