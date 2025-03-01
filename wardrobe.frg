@@ -141,8 +141,6 @@ pred neutralMatch[o: Outfit] {
     and neutralColor[o.shoes.color]
 }
 
-
-
 //////////////////////////////////////////
 
 -- Outfit definition
