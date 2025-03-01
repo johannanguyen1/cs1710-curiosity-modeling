@@ -204,28 +204,37 @@ pred wellformed[outfit: Outfit] {
     outfit.outerwear = none or outfit.outerwear.category = Outerwear
     all a: outfit.accessory | a.category = Accessory
 
-    colorRules[outfit]
-
 }
 
 pred colorRules[outfit: Outfit] {
 
     -- Ensure at least one valid color pattern pair exists in the outfit
     let c1 = outfit.top.color, c2 = outfit.bottom.color, c3 = outfit.shoes.color, c4 = outfit.accessory.color,
-        c5 = outfit.outerwear.color |
-    
-    -- Check for complementary colors between the top, bottom, shoes, accessory, and outerwear
-    (complementaryColor[c1, c2] or complementaryColor[c1, c3] or complementaryColor[c1, c4] or complementaryColor[c1, c5] or
-     complementaryColor[c2, c3] or complementaryColor[c2, c4] or complementaryColor[c2, c5] or
-     complementaryColor[c3, c4] or complementaryColor[c3, c5] or complementaryColor[c4, c5]) or
-    
-    -- Check for neutral color match (if all items are neutral)
-    neutralMatch[outfit] or
-    
-    -- Check for analogous colors between any two items
-    (analogousColor[c1, c2] or analogousColor[c1, c3] or analogousColor[c1, c4] or analogousColor[c1, c5] or
-     analogousColor[c2, c3] or analogousColor[c2, c4] or analogousColor[c2, c5] or
-     analogousColor[c3, c4] or analogousColor[c3, c5] or analogousColor[c4, c5])
+        c5 = outfit.outerwear.color | {
+        -- Check for complementary colors between the top, bottom, shoes, accessory, and outerwear
+        (complementaryColor[c1, c2] or complementaryColor[c1, c3] or complementaryColor[c1, c4] or complementaryColor[c1, c5] or
+        complementaryColor[c2, c3] or complementaryColor[c2, c4] or complementaryColor[c2, c5] or
+        complementaryColor[c3, c4] or complementaryColor[c3, c5] or complementaryColor[c4, c5]) or
+        
+        -- Check for neutral color match (if all items are neutral)
+        neutralMatch[outfit] or
+        
+        -- Check for analogous colors between any two items
+        (analogousColor[c1, c2] or analogousColor[c1, c3] or analogousColor[c1, c4] or analogousColor[c1, c5] or
+        analogousColor[c2, c3] or analogousColor[c2, c4] or analogousColor[c2, c5] or
+        analogousColor[c3, c4] or analogousColor[c3, c5] or analogousColor[c4, c5])  
+    }
+
+
+}
+
+pred warmOrCool[outfit: Outfit] {
+    -- Ensure at least one valid color pattern pair exists in the outfit
+    let c1 = outfit.top.color, c2 = outfit.bottom.color, c3 = outfit.shoes.color, c4 = outfit.accessory.color,
+        c5 = outfit.outerwear.color | {
+            (warmColor[c1] and warmColor[c2] and warmColor[c3] and warmColor[c4] and (no c5 or warmColor[c5])) or
+            (coolColor[c1] and coolColor[c2] and coolColor[c3] and coolColor[c4] and (no c5 or coolColor[c5]))
+        }
 }
 
 -- Ensure that at least one valid outfit exists for each season
@@ -237,18 +246,21 @@ pred wardrobeHasValidOutfits {
                 o.top.formality = f and
                 seasonalityMatch[o] and 
                 formalityMatch[o] and 
-                wellformed[o]
+                wellformed[o] 
+                colorRules[o]
+
 }
 
-// run {
-//     rgbValues
-//     all c1, c2: Color | {
-//         //verifyWarmColors[c]
-//         // verifyCoolColors[c]
-//         // verifyComplementaryColors[c1, c2]
-//         verifyAnalogousColors[c1, c2]
-//      }
-// } for exactly 15 Color, 9 Int
+
+run {
+    rgbValues
+    all c1, c2: Color | {
+        //verifyWarmColors[c]
+        // verifyCoolColors[c]
+        // verifyComplementaryColors[c1, c2]
+        verifyAnalogousColors[c1, c2]
+     }
+} for exactly 15 Color, 9 Int
 
 
 run wardrobeHasValidOutfits for 4 Season, 3 Formality, 12 Outfit, 48 Clothing, 15 Color, 9 Int
